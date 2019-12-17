@@ -64,14 +64,22 @@ public class TestBase extends AbstractTestNGCucumberTests {
 			driver = new InternetExplorerDriver();
 		} else if (browserName.equalsIgnoreCase("headless")) {
 			DesiredCapabilities caps = new DesiredCapabilities();
-            caps.setJavascriptEnabled(true);
-            caps.setCapability(PhantomJSDriverService.PHANTOMJS_EXECUTABLE_PATH_PROPERTY
-            		, System.getProperty("user.dir") + "/Drivers/phantomjs.exe");
-            String[] phantomJsArgs = {"--web-security=no",
-            		"--ignore-ssl-errors=yes"};
-            caps.setCapability(PhantomJSDriverService.PHANTOMJS_CLI_ARGS, phantomJsArgs);
-            
+			caps.setJavascriptEnabled(true);
+			caps.setCapability(PhantomJSDriverService.PHANTOMJS_EXECUTABLE_PATH_PROPERTY,
+					System.getProperty("user.dir") + "/Drivers/phantomjs.exe");
+			String[] phantomJsArgs = { "--web-security=no", "--ignore-ssl-errors=yes" };
+			caps.setCapability(PhantomJSDriverService.PHANTOMJS_CLI_ARGS, phantomJsArgs);
+
 			driver = new PhantomJSDriver(caps);
+		}
+
+		else if (browserName.equalsIgnoreCase("chrome-headless")) {
+			System.setProperty("webdriver.chrome.driver",
+			System.getProperty("user.dir") + "/Drivers/chromedriver.exe");
+			ChromeOptions option = new ChromeOptions();
+			option.addArguments("--headless");
+			option.addArguments("--window-size=1920,1080");
+			driver = new ChromeDriver(option);
 		} else {
 			// nothing
 		}
