@@ -9,7 +9,10 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.ie.InternetExplorerDriver;
+import org.openqa.selenium.phantomjs.PhantomJSDriver;
+import org.openqa.selenium.phantomjs.PhantomJSDriverService;
 import org.openqa.selenium.remote.CapabilityType;
+import org.openqa.selenium.remote.DesiredCapabilities;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.AfterSuite;
@@ -22,37 +25,34 @@ import com.beust.jcommander.Parameter;
 import cucumber.api.testng.AbstractTestNGCucumberTests;
 import utilities.Helper;
 
-public class TestBase extends AbstractTestNGCucumberTests{
+public class TestBase extends AbstractTestNGCucumberTests {
 
 	public static WebDriver driver;
-	public static String downloadPath = System.getProperty
-			("user.dir") + "\\Downloads";
-	
-	public static ChromeOptions chromeoption()
-	{
+	public static String downloadPath = System.getProperty("user.dir") + "\\Downloads";
+
+	public static ChromeOptions chromeoption() {
 		ChromeOptions option = new ChromeOptions();
-		HashMap< String, Object> chromePrefs = new HashMap<String, Object>();
+		HashMap<String, Object> chromePrefs = new HashMap<String, Object>();
 		chromePrefs.put("profile.default.content_settings.popups", 0);
 		chromePrefs.put("download.default_directory", downloadPath);
-		option.setExperimentalOption("prefs",chromePrefs);
+		option.setExperimentalOption("prefs", chromePrefs);
 		option.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
 		return option;
 	}
-	
-	public static FirefoxOptions firefoxoption()
-	{
+
+	public static FirefoxOptions firefoxoption() {
 		FirefoxOptions option = new FirefoxOptions();
 		option.addPreference("browser.download.folderList", 2);
 		option.addPreference("browser.download.dir", downloadPath);
 		option.addPreference("browser.helperApps.neverAsk.saveToDisk", "application/octet-stream");
 		option.addPreference("browser.download.manager.showWhenStarting", false);
-		
+
 		return option;
 	}
 
 	@BeforeSuite
 	@Parameters({ "browser" })
-	public void startDriver(@Optional ("chrome") String browserName) {
+	public void startDriver(@Optional("chrome") String browserName) {
 		if (browserName.equalsIgnoreCase("chrome")) {
 			System.setProperty("webdriver.chrome.driver", System.getProperty("user.dir") + "/Drivers/chromedriver.exe");
 			driver = new ChromeDriver(chromeoption());
@@ -62,6 +62,16 @@ public class TestBase extends AbstractTestNGCucumberTests{
 		} else if (browserName.equalsIgnoreCase("ie")) {
 			System.setProperty("webdriver.ie.driver", System.getProperty("user.dir") + "/Drivers/IEDriverServer.exe");
 			driver = new InternetExplorerDriver();
+		} else if (browserName.equalsIgnoreCase("headless")) {
+			DesiredCapabilities caps = new DesiredCapabilities();
+            caps.setJavascriptEnabled(true);
+            caps.setCapability(PhantomJSDriverService.PHANTOMJS_EXECUTABLE_PATH_PROPERTY
+            		, System.getProperty("user.dir") + "/Drivers/phantomjs.exe");
+            String[] phantomJsArgs = {"--web-security=no",
+            		"--ignore-ssl-errors=yes"};
+            caps.setCapability(PhantomJSDriverService.PHANTOMJS_CLI_ARGS, phantomJsArgs);
+            
+			driver = new PhantomJSDriver(caps);
 		} else {
 			// nothing
 		}
@@ -70,15 +80,13 @@ public class TestBase extends AbstractTestNGCucumberTests{
 		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 		driver.get("https://demo.nopcommerce.com/");
 	}
-	
+
 	@AfterMethod
-	public void takeScreenShotOnFailure(ITestResult result)
-	{
-		if(result.getStatus() == ITestResult.FAILURE)
-		{
+	public void takeScreenShotOnFailure(ITestResult result) {
+		if (result.getStatus() == ITestResult.FAILURE) {
 			System.out.println("Failed ");
 			System.out.println("taking screenshot ...");
-			Helper.captureScreenShot(driver, result.getName()); 
+			Helper.captureScreenShot(driver, result.getName());
 		}
 	}
 
